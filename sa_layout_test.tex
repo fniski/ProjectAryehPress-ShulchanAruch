@@ -1,0 +1,546 @@
+% Shulchan Aruch Two-Page Layout Prototype
+% Compile with: lualatex sa_layout_test.tex
+\documentclass[11pt,letterpaper,openany]{scrbook}
+
+\usepackage[letterpaper,
+  bindingoffset=0.2in,
+  left=0.4in, right=0.4in,
+  top=0.35in, bottom=0.35in,
+  footskip=0.2in,
+  marginparwidth=0em
+]{geometry}
+
+\usepackage{fontspec}
+\usepackage{polyglossia}
+\usepackage{xcolor}
+\usepackage{tcolorbox}
+\usepackage{ragged2e}
+
+\tcbuselibrary{skins, breakable}
+
+% ── Language: English main (LTR layout), Hebrew secondary (RTL text) ──
+% This avoids RTL minipage placement issues while keeping Hebrew text RTL.
+\setmainlanguage{english}
+\setotherlanguage{hebrew}
+
+% ── Colors ──
+\definecolor{headerGrey}{HTML}{B0B0B0}
+\definecolor{mechaberRed}{HTML}{FFCCCC}
+\definecolor{magenAvOrange}{HTML}{FFE0B2}
+\definecolor{mishnaBerurahYellow}{HTML}{FFF9C4}
+\definecolor{machatzitGreen}{HTML}{C8E6C9}
+\definecolor{periMegadimBlue}{HTML}{BBDEFB}
+\definecolor{eshelPurple}{HTML}{E1BEE7}
+\definecolor{mashbatzotPurple}{HTML}{D1C4E9}
+\definecolor{sidePanelPink}{HTML}{F8BBD0}
+\definecolor{hcolor}{HTML}{1A3264}
+\definecolor{remaGreen}{HTML}{006400}
+
+% ── Fonts ──
+% Default Hebrew font used by \begin{hebrew} environment
+\newfontfamily\hebrewfont[
+  Path=../Fonts/,
+  Script=Hebrew, Ligatures=TeX,
+  BoldFont=FrankRuehlCLM-Bold.otf
+]{FrankRuehlCLM-Medium.otf}
+
+\newfontfamily\mechaberfont[
+  Path=../Fonts/Frank/static/,
+  Script=Hebrew, Ligatures=TeX,
+  BoldFont=FrankRuhlLibre-Bold.ttf
+]{FrankRuhlLibre-Regular.ttf}
+
+\newfontfamily\commentaryfont[
+  Path=../Fonts/,
+  Script=Hebrew, Ligatures=TeX,
+  BoldFont=FrankRuehlCLM-Bold.otf
+]{FrankRuehlCLM-Medium.otf}
+
+\newfontfamily\rashifont[
+  Path=../Fonts/,
+  Script=Hebrew, Ligatures=TeX
+]{HadasimCLM-Regular.otf}
+
+\newfontfamily\titlefont[
+  Path=../Fonts/Frank/static/,
+  Script=Hebrew, Ligatures=TeX,
+  BoldFont=FrankRuhlLibre-Bold.ttf
+]{FrankRuhlLibre-Bold.ttf}
+
+\newfontfamily\engfont[
+  Path=../Fonts/,
+  Ligatures=TeX
+]{EBGaramond-Regular.ttf}
+
+\newfontfamily\engboldfont[
+  Path=../Fonts/,
+  Ligatures=TeX,
+  BoldFont=EBGaramond-Bold.ttf
+]{EBGaramond-Bold.ttf}
+
+% ── Spacing ──
+\setlength\parindent{0pt}
+\setlength{\columnsep}{0.5em}
+\setlength{\parfillskip}{0pt}
+\raggedbottom
+\pagestyle{empty}
+
+% ── Shared tcolorbox styles ──
+% Hebrew commentary box: RTL text via begin{hebrew} inside
+\newtcolorbox{mechaberbox}{
+  colback=mechaberRed, colframe=mechaberRed!60!black,
+  fontupper=\mechaberfont\fontsize{12}{15}\selectfont,
+  boxrule=0.5pt, arc=1pt,
+  top=2pt, bottom=2pt, left=3pt, right=3pt
+}
+\newtcolorbox{magenbox}{
+  colback=magenAvOrange, colframe=magenAvOrange!60!black,
+  fontupper=\commentaryfont\fontsize{9}{11.5}\selectfont,
+  boxrule=0.5pt, arc=1pt,
+  top=2pt, bottom=2pt, left=2pt, right=2pt
+}
+\newtcolorbox{mbbox}{
+  colback=mishnaBerurahYellow, colframe=mishnaBerurahYellow!60!black,
+  fontupper=\commentaryfont\fontsize{9}{11.5}\selectfont,
+  boxrule=0.5pt, arc=1pt,
+  top=2pt, bottom=2pt, left=2pt, right=2pt
+}
+\newtcolorbox{sidebox}{
+  colback=sidePanelPink, colframe=sidePanelPink!60!black,
+  fontupper=\rashifont\fontsize{7}{9}\selectfont,
+  boxrule=0.3pt, arc=1pt,
+  top=1pt, bottom=1pt, left=2pt, right=2pt
+}
+\newtcolorbox{magenDavidbox}{
+  colback=magenAvOrange!50, colframe=magenAvOrange!60!black,
+  fontupper=\commentaryfont\fontsize{9}{11.5}\selectfont,
+  boxrule=0.5pt, arc=1pt,
+  top=2pt, bottom=2pt, left=2pt, right=2pt
+}
+% English boxes
+\newtcolorbox{machatzitbox}{
+  colback=machatzitGreen, colframe=machatzitGreen!60!black,
+  fontupper=\engfont\fontsize{9.5}{12}\selectfont,
+  boxrule=0.5pt, arc=1pt,
+  top=3pt, bottom=3pt, left=4pt, right=4pt
+}
+\newtcolorbox{eshelbox}{
+  colback=eshelPurple, colframe=eshelPurple!60!black,
+  fontupper=\engfont\fontsize{9}{11}\selectfont,
+  boxrule=0.5pt, arc=1pt,
+  top=3pt, bottom=3pt, left=4pt, right=4pt
+}
+\newtcolorbox{mashbatzotbox}{
+  colback=mashbatzotPurple, colframe=mashbatzotPurple!60!black,
+  fontupper=\engfont\fontsize{9}{11}\selectfont,
+  boxrule=0.5pt, arc=1pt,
+  top=3pt, bottom=3pt, left=4pt, right=4pt
+}
+\newtcolorbox{sideboxEng}{
+  colback=sidePanelPink, colframe=sidePanelPink!60!black,
+  fontupper=\engfont\fontsize{7.5}{9.5}\selectfont,
+  boxrule=0.3pt, arc=1pt,
+  top=1pt, bottom=1pt, left=2pt, right=2pt
+}
+
+% ── Zone label (Hebrew bold blue) ──
+\newcommand{\zonelabel}[1]{%
+  \par\noindent{\commentaryfont\fontsize{8}{10}\selectfont\textcolor{hcolor}{\textbf{#1}}}\par\smallskip
+}
+
+% ══════════════════════════════════════════════
+\begin{document}
+\begin{sloppypar}
+
+% ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+%  PAGE 1 — HEBREW
+% ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+% Layout is LTR (minipage placement left→right).
+% Hebrew text inside each box uses \begin{hebrew}...\end{hebrew} for RTL.
+
+% ── HEADER ──
+\begin{tcolorbox}[
+  colback=headerGrey, colframe=headerGrey!80!black,
+  boxrule=0.5pt, arc=2pt,
+  top=2pt, bottom=2pt, left=4pt, right=4pt,
+  halign=center
+]
+\begin{hebrew}
+{\titlefont\large\bfseries שולחן ערוך אורח חיים הלכות שבת סימן ר"צ}
+\end{hebrew}
+\end{tcolorbox}
+
+\vspace{3pt}
+
+% ── MAIN ROW: Left side panel | [MA | Mechaber | MB] | Right side panel ──
+\noindent
+%
+% LEFT SIDE PANEL (Pink)
+\begin{minipage}[t]{0.085\textwidth}
+\begin{sidebox}
+\begin{hebrew}
+\rashifont\fontsize{7}{9}\selectfont
+\zonelabel{גליון מהרש"א}
+עיין מג"א ס"ק א'.
+ונ"ל דכוונתו
+למ"ש הב"י.
+
+\medskip
+\zonelabel{ציונים ומקורות}
+סעיף א:
+שבת קי"ח ע"א.
+טור ושו"ע.
+רמב"ם הל' שבת פ"ל.
+
+סעיף ב:
+ירושלמי שבת פט"ו.
+תנחומא ויקהל.
+מדרש תהלים.
+
+\medskip
+\zonelabel{לבושי שרד}
+עיין בלבוש סי'
+ר"צ שכתב
+בטעם הדבר.
+
+\medskip
+\zonelabel{עטרת זקנים}
+בשבת ישלים.
+עיין שו"ת
+מהר"ם מרוטנבורג.
+
+\medskip
+\zonelabel{ערוך השלחן}
+סי' ר"צ סעיף א'.
+עיין בערוה"ש
+שהאריך בזה.
+\end{hebrew}
+\end{sidebox}
+\end{minipage}%
+\hfill
+%
+% MAIN CENTER ZONE
+\begin{minipage}[t]{0.80\textwidth}
+
+% Top 3-column row: MA (left) | Mechaber (center) | MB (right)
+\noindent
+%
+% MAGEN AVRAHAM (Orange) — left column
+\begin{minipage}[t]{0.265\textwidth}
+\begin{magenbox}
+\begin{hebrew}
+\commentaryfont\fontsize{9}{11.5}\selectfont
+\zonelabel{מגן אברהם}
+\textbf{א)} בשבת ישלים מאה ברכות בפירות.
+כתב הב"י בשם הכלבו דבשבת שחסרים
+כמה ברכות מן המאה מפני שאין מתפללים
+שמונה עשרה אלא שבע ברכות ישלים
+אותם ע"י פירות ובשמים ומיני מגדים.
+ועיין לקמן סי' רפ"ד ובמ"א שם.
+וכתב עוד בשם רבינו יונה
+שהסעודה עצמה ממלאת חלק
+מהמאה ברכות שחסרות בשבת
+וצריך האדם לכוין דעתו
+בברכות הנהנין ובברכות התורה
+להשלים המנין הראוי.
+\end{hebrew}
+\end{magenbox}
+\end{minipage}%
+\hfill
+%
+% MECHABER + REMA (Red) — center column
+\begin{minipage}[t]{0.41\textwidth}
+\begin{mechaberbox}
+\begin{hebrew}
+\mechaberfont\fontsize{12}{15}\selectfont
+\zonelabel{שולחן ערוך}
+\textbf{סעיף א.}
+בשבת ישלים מאה ברכות בפירות
+ובשמים ומיני מגדים.
+
+\medskip
+\textcolor{remaGreen}{\textbf{הגה:}}
+\textcolor{remaGreen}{ויש שלא נהגו בזה ואין
+למחות בידם כי יש להם על מה שיסמוכו
+(מהרי"ל). ומכל מקום טוב להשלים
+ע"י פירות ובשמים.}
+
+\bigskip
+\textbf{סעיף ב.}
+אחר סעודת שחרית קובעים מדרש
+לקרות בנביאים ולדרוש בהגדות
+ומדרשי חז"ל ולא ירבה בסעודת
+שחרית כדי שיאכל סעודה שלישית
+לתיאבון.
+
+\medskip
+\textcolor{remaGreen}{\textbf{הגה:}}
+\textcolor{remaGreen}{ובמקום שנהגו שאין קובעים מדרש
+יכולים ללמוד כל אחד לעצמו.
+ומ"מ חייב כל אדם ללמוד
+בשבת יותר מבחול (ב"י).}
+\end{hebrew}
+\end{mechaberbox}
+\end{minipage}%
+\hfill
+%
+% MISHNAH BERURAH + BA'ER HEITEV (Yellow) — right column
+\begin{minipage}[t]{0.265\textwidth}
+\begin{mbbox}
+\begin{hebrew}
+\commentaryfont\fontsize{9}{11.5}\selectfont
+\zonelabel{משנה ברורה}
+\textbf{א)} בשבת ישלים — פירוש
+לפי שבשבת חסרים הרבה ברכות
+שהרי אין מתפללים י"ח אלא ז' ברכות
+וכן בברכת המזון אין אומרים ברכה מעין שבע
+וגם חסרים ברכות מן ק"ש של ערבית
+ולכן ישלים בפירות ובשמים.
+
+\medskip
+\textbf{ב)} ובשמים — אף דאין מברכין
+על הבשמים אלא כשמתכוין להריח
+מ"מ כיון שצריך להשלים יכוין להריח
+ויברך עליהם.
+
+\medskip
+\textbf{ג)} ומיני מגדים — לאו דוקא
+אלא כל מיני פירות ואפילו קטניות.
+
+\medskip
+\zonelabel{באר היטב}
+\textbf{א)} ישלים מאה ברכות.
+עיין מג"א ס"ק א'.
+ובט"ז כתב טעם אחר
+למנהג זה.
+
+\textbf{ב)} קובעים מדרש.
+עיין בב"י שהביא ממדרש תנחומא
+שחייב אדם ללמוד בשבת
+בתורה בנביאים ובכתובים.
+\end{hebrew}
+\end{mbbox}
+\end{minipage}
+
+\vspace{3pt}
+
+% Lower 2-column zone
+\noindent
+%
+% MAGEN DAVID (light orange) — left
+\begin{minipage}[t]{0.49\textwidth}
+\begin{magenDavidbox}
+\begin{hebrew}
+\commentaryfont\fontsize{9}{11.5}\selectfont
+\zonelabel{מגן דוד}
+סעיף א. בשבת ישלים מאה ברכות.
+הנה ידוע כי מספר מאה ברכות הוא תקנת
+דוד המלך עליו השלום כמבואר בגמרא מנחות
+דף מ"ג ע"ב ובזוהר הקדוש פרשת בלק.
+ובשבת שחסרים כמה ברכות מתפילת
+שמונה עשרה שמתפללים רק שבע ברכות
+ישלים אותם ע"י ברכות הנהנין על פירות
+ובשמים ומיני מגדים. ויכוין בכל ברכה
+וברכה שמברך לשם שמים ולהשלמת
+המאה ברכות שתיקן דוד המלך.
+וזהו שאמרו חז"ל שחייב אדם לברך
+מאה ברכות בכל יום אף בשבת ויו"ט.
+\end{hebrew}
+\end{magenDavidbox}
+\end{minipage}%
+\hfill
+%
+% MISHNAH BERURAH continued (Yellow) — right
+\begin{minipage}[t]{0.49\textwidth}
+\begin{mbbox}
+\begin{hebrew}
+\commentaryfont\fontsize{9}{11.5}\selectfont
+\zonelabel{משנה ברורה — המשך}
+\textbf{ד)} קובעים מדרש — ר"ל שקובעים
+עת ללמוד בנביאים ובאגדות
+חז"ל ולדרוש ברבים. וכתב הב"י
+בשם הרמב"ם שזה חובה על כל
+קהל ישראל.
+
+\textbf{ה)} לא ירבה בסעודת שחרית —
+שלא יאכל הרבה בסעודה שניה
+כדי שיוכל לאכול סעודה שלישית
+לתיאבון ולא יצטרך לאנוס עצמו.
+
+\textbf{ו)} סעודה שלישית — דהיינו
+סעודה שלישית של שבת שהיא
+חובה כמבואר לקמן בסימן רצ"א.
+
+\textbf{ז)} ובמקום שנהגו — ר"ל
+שיש מקומות שלא נהגו לקבוע
+מדרש לרבים.
+
+\textbf{ח)} יותר מבחול — דשבת
+ניתנה לישראל כדי שיעסקו בתורה.
+\end{hebrew}
+\end{mbbox}
+\end{minipage}
+
+\end{minipage}%
+\hfill
+%
+% RIGHT SIDE PANEL (Pink)
+\begin{minipage}[t]{0.085\textwidth}
+\begin{sidebox}
+\begin{hebrew}
+\rashifont\fontsize{7}{9}\selectfont
+\zonelabel{באר הגולה}
+\textbf{א)} טור.
+\textbf{ב)} רמב"ם פ"ל מהל' שבת.
+\textbf{ג)} גמ' שבת דף קי"ח.
+
+\medskip
+\zonelabel{ביאור הגר"א}
+בשבת ישלים מאה ברכות וכו'. עיין בב"י.
+וכן הוא במדרש תהלים מזמור י"ז ובפסיקתא רבתי.
+
+\medskip
+\zonelabel{חידושי ר"ע איגר}
+עיין מג"א ס"ק א' ובמחצית השקל שם.
+ועיין שו"ת חת"ס או"ח סי' נ"ה.
+\end{hebrew}
+\end{sidebox}
+\end{minipage}
+
+% ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+\newpage
+% ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+%  PAGE 2 — ENGLISH TRANSLATION
+% ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+% ── HEADER ──
+\begin{tcolorbox}[
+  colback=headerGrey, colframe=headerGrey!80!black,
+  fontupper=\engboldfont\large\bfseries,
+  boxrule=0.5pt, arc=2pt,
+  top=2pt, bottom=2pt, left=4pt, right=4pt,
+  halign=center
+]
+Shulchan Aruch, Orach Chaim --- Laws of Shabbos, Siman 290
+\end{tcolorbox}
+
+\vspace{3pt}
+
+% ── MACHATZIT HASHEKEL (Green, 2 columns) ──
+\begin{machatzitbox}
+{\commentaryfont\fontsize{9}{11}\selectfont\textcolor{hcolor}{\textbf{\texthebrew{מחצית השקל}}}}\par\smallskip
+\begin{minipage}[t]{0.48\textwidth}
+\textbf{Seif 1.} \textit{On Shabbos one should complete one hundred blessings with fruits} --- The Magen Avraham writes that since on Shabbos many blessings are missing from the daily count of one hundred, because the Shemoneh Esrei is replaced by only seven blessings, one should complete the count through blessings on fruits, spices, and delicacies. The source is the Kol Bo, who cites this as an established practice. Rabbeinu Yonah adds that the meal itself contributes several blessings toward the total, including Birkas HaMazon, the blessing on bread, and the blessings on wine. Therefore, one need not eat an excessive quantity of fruits merely to reach the number; rather, one should eat mindfully and with proper intention.
+\end{minipage}%
+\hfill
+\begin{minipage}[t]{0.48\textwidth}
+\textbf{Seif 2.} \textit{After the morning meal, one establishes a study session} --- The Beis Yosef explains that this practice is rooted in the Midrash Tanchuma (Parshas Vayakhel), which states that Moshe Rabbeinu established for Israel that they should study the laws of each festival on that festival. From this, the Sages derived that one should study Prophets and Aggadic teachings on Shabbos. The Rambam codifies this as an obligation upon every Jewish community to establish a public study session on Shabbos, not merely an individual practice. The reason one should not overeat at the morning meal is to ensure that the third meal can be eaten with appetite, as this meal carries its own independent obligation.
+\end{minipage}
+\end{machatzitbox}
+
+\vspace{3pt}
+
+% ── PERI MEGADIM (Blue header) ──
+\begin{tcolorbox}[
+  colback=periMegadimBlue, colframe=periMegadimBlue!60!black,
+  fontupper=\engfont\fontsize{9.5}{12}\selectfont,
+  boxrule=0.5pt, arc=1pt,
+  top=3pt, bottom=3pt, left=4pt, right=4pt
+]
+{\commentaryfont\fontsize{9}{11}\selectfont\textcolor{hcolor}{\textbf{\texthebrew{פרי מגדים}}}}\par\smallskip
+\textit{The Peri Megadim expounds upon both the Magen Avraham and the Taz:}
+\end{tcolorbox}
+
+\vspace{2pt}
+
+% ── Eshel Avraham + Mashbatzot Zahav (Purple, side by side) ──
+\noindent
+\begin{minipage}[t]{0.49\textwidth}
+\begin{eshelbox}
+{\commentaryfont\fontsize{9}{11}\selectfont\textcolor{hcolor}{\textbf{\texthebrew{אשל אברהם}}}}\par\smallskip
+\textbf{On Magen Avraham \S1:}
+The Magen Avraham's ruling that one should complete the hundred blessings through fruits requires clarification. For if we are counting toward one hundred, then surely the blessings of the Torah reading --- the five \textit{aliyos} and the \textit{maftir} --- contribute to the count as well. The Peri Megadim suggests that these blessings are already included in the standard reckoning and that the shortfall comes specifically from the difference between the weekday Amidah (nineteen blessings) and the Shabbos Amidah (seven blessings), yielding a deficit of approximately twelve blessings.
+
+Furthermore, regarding the Rema's note that some communities did not follow this practice: the Peri Megadim suggests this is because they relied upon the opinion that the obligation of one hundred blessings is \textit{de-rabbanan} and not \textit{min ha-Torah}, and therefore on Shabbos there is room for leniency.
+\end{eshelbox}
+\end{minipage}%
+\hfill
+\begin{minipage}[t]{0.49\textwidth}
+\begin{mashbatzotbox}
+{\commentaryfont\fontsize{9}{11}\selectfont\textcolor{hcolor}{\textbf{\texthebrew{משבצות זהב}}}}\par\smallskip
+\textbf{On Taz (not extant for this siman):}
+Although the Taz does not comment directly on this siman, the Peri Megadim notes that the Taz's general approach to \textit{birkas ha-nehenin} (blessings over enjoyment) is relevant here. The Taz holds that one should not make a blessing unless one genuinely desires the food, which raises a question: if one is eating fruits solely to reach the count of one hundred blessings, is the blessing made in vain?
+
+The Mashbatzot Zahav resolves this by noting that on Shabbos, the act of eating fruits is itself a fulfillment of \textit{oneg Shabbos} (Shabbos delight), and therefore the blessing is never ``in vain'' --- it serves a dual purpose. This is consistent with the broader principle that mitzvos performed on Shabbos carry additional spiritual weight.
+
+The practical ruling is that one should endeavor to eat the fruits with genuine enjoyment and not merely as a perfunctory act of counting.
+\end{mashbatzotbox}
+\end{minipage}
+
+\vspace{3pt}
+
+% ── BOTTOM ZONE: Side panels + center additional commentaries ──
+\noindent
+\begin{minipage}[t]{0.12\textwidth}
+\begin{sideboxEng}
+{\commentaryfont\fontsize{7}{9}\selectfont\textcolor{hcolor}{\textbf{\texthebrew{באר הגולה}}}}\par\smallskip
+\textbf{a)} Tur.
+\textbf{b)} Rambam, Hilchos Shabbos Ch.~30.
+\textbf{c)} Gemara Shabbos 118a.
+
+\medskip
+{\commentaryfont\fontsize{7}{9}\selectfont\textcolor{hcolor}{\textbf{\texthebrew{ביאור הגר"א}}}}\par\smallskip
+See Beis Yosef. Cf.~Midrash Tehillim ch.~17 and Pesikta Rabbasi.
+\end{sideboxEng}
+\end{minipage}%
+\hfill
+\begin{minipage}[t]{0.74\textwidth}
+\begin{tcolorbox}[
+  colback=white, colframe=hcolor,
+  fontupper=\engfont\fontsize{9}{11}\selectfont,
+  boxrule=0.5pt, arc=1pt,
+  top=3pt, bottom=3pt, left=4pt, right=4pt,
+  title={\engboldfont Additional Commentary Translations},
+  coltitle=white, colbacktitle=hcolor
+]
+\begin{minipage}[t]{0.47\textwidth}
+\textbf{Chiddushei R' Akiva Eiger:}
+See Magen Avraham \S1 and the Machatzis HaShekel ad loc. See also Responsa Chasam Sofer, Orach Chaim \S55, who discusses whether the obligation of one hundred blessings applies equally on Shabbos and Yom Tov or whether there is a distinction between them. The Chasam Sofer inclines toward the view that there is no distinction.
+\end{minipage}%
+\hfill
+\begin{minipage}[t]{0.47\textwidth}
+\textbf{Gilyon Maharsha:}
+See Magen Avraham \S1. It appears to me that his intent aligns with the Beis Yosef's explanation. The Maharsha adds that the practice of completing blessings through fruits has an additional dimension: it sanctifies the physical act of eating on Shabbos and elevates it to a spiritual service.
+
+\medskip
+\textbf{Aruch HaShulchan (\S290:1):}
+Expounds at length on the nature of the obligation and its practical applications.
+\end{minipage}
+\end{tcolorbox}
+\end{minipage}%
+\hfill
+\begin{minipage}[t]{0.12\textwidth}
+\begin{sideboxEng}
+{\commentaryfont\fontsize{7}{9}\selectfont\textcolor{hcolor}{\textbf{\texthebrew{ציונים ומקורות}}}}\par\smallskip
+\textbf{Seif 1:}
+Shabbos 118a.
+Tur \& SA.
+Rambam, Hil.~Shabbos 30.
+
+\textbf{Seif 2:}
+Yerushalmi Shabbos 15.
+Tanchuma, Vayakhel.
+Midrash Tehillim.
+
+\medskip
+{\commentaryfont\fontsize{7}{9}\selectfont\textcolor{hcolor}{\textbf{\texthebrew{לבושי שרד}}}}\par\smallskip
+See Levush \S290.
+
+\medskip
+{\commentaryfont\fontsize{7}{9}\selectfont\textcolor{hcolor}{\textbf{\texthebrew{עטרת זקנים}}}}\par\smallskip
+See Resp.~Maharam of Rothenburg.
+\end{sideboxEng}
+\end{minipage}
+
+\end{sloppypar}
+\end{document}

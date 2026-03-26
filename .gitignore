@@ -1,0 +1,26 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+env/
+venv/
+.env
+
+# LaTeX temp files
+*.aux
+*.log
+*.out
+*.toc
+*.xdv
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+out.tex
+out_spread.tex
+measure.tex
+
+# Project specifics
+claude_code/out_spread.pdf
+sefaria/*.json
+!sefaria/siman_1.json

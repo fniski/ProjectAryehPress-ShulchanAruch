@@ -121,36 +121,61 @@ def _to_hebrew_gematria(n: int) -> str:
     if n == 16:
         return result + "ט״ז"
     tens = " יכלמנסעפצ"
-    ones = " אבגדהוזחט"
-    if n >= 10:
-        result += tens[n // 10]
-        n %= 10
-    if n >= 1:
-        result += ones[n]
-    if len(result) == 1:
-        result += "׳"
-    elif len(result) > 1:
-        result = result[:-1] + "״" + result[-1]
-    return result
+    # Use 10pt Frank Ruehl CLM (or similar) as the default
+    return f"""\\documentclass[10pt]{{article}}
+\\usepackage[paperwidth={geom.width_pt}pt, paperheight={geom.height_pt}pt, margin=0pt]{{geometry}}
+\\usepackage[absolute,overlay]{{textpos}}
+\\usepackage{{fontspec}}
+\\usepackage{{polyglossia}}
+\\setdefaultlanguage{{hebrew}}
+\\setotherlanguage{{english}}
+\\usepackage{{xcolor}}
 
+\\newfontfamily\\hebrewfont[
+    Path=D:/Projects/ProjectAryehPress/Seforim/Fonts/,
+    Extension=.otf,
+    BoldFont=FrankRuehlCLM-Bold,
+    ItalicFont=FrankRuehlCLM-Medium
+]{{FrankRuehlCLM-Medium}}
 
-def _render_page(page: PageContent, geom: PageGeometry, siman_num: int) -> str:
-    """Render one page (either Core or Commentary)."""
+\\newfontfamily\\mainfont[
+    Path=D:/Projects/ProjectAryehPress/Seforim/Fonts/,
+    Extension=.otf
+]{{FrankRuehlCLM-Medium}}
+
+\\newfontfamily\\sidefont[
+    Path=D:/Projects/ProjectAryehPress/Seforim/Fonts/,
+    Extension=.otf
+]{{FrankRuehlCLM-Medium}}
+
+\\setlength{{\\TPHorizModule}}{{1pt}}
+\\setlength{{\\TPVertModule}}{{1pt}}
+\\textblockorigin{{0pt}}{{0pt}}
+
+% Custom command for English
+\\newcommand{{\\textenglish}}[1]{{\\begin{{otherlanguage}}{{english}}#1\\end{{otherlanguage}}}}
+
+\\parindent=0pt
+\\parskip=2pt
+"""
+
+def _render_page(page: PageContent, geom: PageGeometry) -> str:
+    is_core = (page.page_num % 2 != 0)
+    lines = []
+    lines.append(f"\\newpage % Page {page.page_num} ({'Core' if is_core else 'Commentary'})")
+    
     tw = geom.text_width_pt
+    th = geom.text_height_pt
+    top = geom.margin_top_pt
+    left = geom.margin_left_pt
     gap = geom.column_gap_pt
-    mx = geom.margin_left_pt
-    my = geom.margin_top_pt
-
-    # Column geometry
+    
     side_w = tw * 0.10
     center_w = tw * 0.80 - 2 * gap
-    half_c = (center_w - gap) / 2.0
+    half_center = (center_w - gap) / 2.0
     pm_left_w = center_w * 0.40 - gap / 2
     pm_right_w = center_w * 0.60 - gap / 2
 
-    x_left_side = mx
-    x_center = mx + side_w + gap
-    x_right_side = mx + tw - side_w
 
     b = page.band_heights
     is_core = (page.page_num % 2 != 0)

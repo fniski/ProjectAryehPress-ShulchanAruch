@@ -23,9 +23,9 @@ Feasibility = center bands stack within page height
 """
 
 from dataclasses import dataclass, field
-from data import Siman, Seif, CommentaryEntry
+from data import Siman, Seif, SubSeif, CommentaryEntry
 from zones import (
-    FontConfig, PageGeometry, DEFAULT_GEOMETRY,
+    PageGeometry, DEFAULT_GEOMETRY,
     FONT_MAIN, FONT_COMMENTARY_LARGE, FONT_COMMENTARY_SMALL, FONT_SIDE,
 )
 from measure import measure_height, MeasureConfig
@@ -40,13 +40,31 @@ def _to_hebrew_letter(n: int) -> str:
     return str(n)
 
 
-def concat_main_text(seifim: list[Seif]) -> str:
+def _format_subseif_tag(s: SubSeif) -> str:
+    if s.total_fragments <= 1:
+        return _to_hebrew_letter(s.seif)
+    return f"{_to_hebrew_letter(s.seif)}-{s.fragment}"
+
+
+def concat_main_text(seifim: list[Seif] | list[SubSeif]) -> str:
     parts = []
     for s in seifim:
+        if isinstance(s, SubSeif):
+            parts.append(f"({_format_subseif_tag(s)})")
+            if s.mechaber:
+                parts.append(s.mechaber)
+            if s.rema:
+                parts.append(f"הגה: {s.rema}")
+            if s.translation:
+                parts.append(f"\\textenglish{{{s.translation}}}")
+            continue
+
         parts.append(f"({_to_hebrew_letter(s.seif)})")
         parts.append(s.mechaber)
         if s.rema:
             parts.append(f"הגה: {s.rema}")
+        if s.translation:
+            parts.append(f"\\textenglish{{{s.translation}}}")
     return " ".join(parts)
 
 
@@ -102,8 +120,8 @@ class BandHeights:
 @dataclass
 class PageContent:
     page_num: int
-    seif_start: int
-    seif_end: int
+    seif_start: str
+    seif_end: str
     zone_texts: dict[str, str] = field(default_factory=dict)
     band_heights: BandHeights = field(default_factory=BandHeights)
 
@@ -114,22 +132,19 @@ class PagePlan:
     pages: list[PageContent] = field(default_factory=list)
 
 
-def _measure(text: str, width_pt: float, font: FontConfig) -> float:
-    return measure_height_heuristic(text, width_pt, font)
-
-
 @dataclass
 class SpreadContent:
-    seif_start: int
-    seif_end: int
+    seif_start: str
+    seif_end: str
+    next_index: int
     core_page: PageContent
     comm_page: PageContent
 
 
 def check_spread_feasibility(
     siman: Siman,
-    seif_start: int,
-    mid: int,
+    start_idx: int,
+    end_idx: int,
     geom: PageGeometry,
     config: MeasureConfig | None = None,
 ) -> tuple[bool, "SpreadContent"]:
@@ -144,19 +159,18 @@ def check_spread_feasibility(
     pm_right_w = center_width * 0.60 - gap / 2
 
     # --- Assemble text for all zones ---
-    seifim = siman.get_main_text_for_seifim(seif_start, mid)
+    seifim = siman.get_main_text_for_subseif_range(start_idx, end_idx)
+    sub_ids = {s.id for s in seifim}
     all_texts: dict[str, str] = {}
     all_texts["main_text"] = concat_main_text(seifim)
 
     for name in ["taz", "magen_avraham", "mishbetzot_zahav", "eshel_avraham",
                   "beer_hagolah", "biur_hagra", "ateret_zekeinim",
                   "chidushei_rav_akiva_eiger"]:
-        entries = siman.get_commentary_for_seifim(name, seif_start, mid)
+        entries = siman.get_commentary_for_subseif_ids(name, sub_ids)
         all_texts[name] = concat_commentary(entries)
 
-    machatzit_entries = siman.get_commentary_for_seifim(
-        "machatzit_hashekel", seif_start, mid
-    )
+    machatzit_entries = siman.get_commentary_for_subseif_ids("machatzit_hashekel", sub_ids)
     left_m, right_m = split_commentary_half(machatzit_entries)
     all_texts["machatzit_hashekel_left"] = left_m
     all_texts["machatzit_hashekel_right"] = right_m
@@ -210,27 +224,28 @@ def check_spread_feasibility(
     comm_texts = {k: all_texts[k] for k in all_texts if k not in ["main_text", "taz", "magen_avraham"]}
 
     spread = SpreadContent(
-        seif_start=seif_start,
-        seif_end=mid,
-        core_page=PageContent(0, seif_start, mid, core_texts, bands1),
-        comm_page=PageContent(0, seif_start, mid, comm_texts, bands2)
+        seif_start=seifim[0].id,
+        seif_end=seifim[-1].id,
+        next_index=end_idx + 1,
+        core_page=PageContent(0, seifim[0].id, seifim[-1].id, core_texts, bands1),
+        comm_page=PageContent(0, seifim[0].id, seifim[-1].id, comm_texts, bands2)
     )
     return feasible, spread
 
 
 def optimize_spread(
     siman: Siman,
-    seif_start: int,
+    start_idx: int,
     geom: PageGeometry = DEFAULT_GEOMETRY,
     config: MeasureConfig | None = None,
 ) -> SpreadContent:
-    max_seif = siman.num_seifim
-    lo, hi = seif_start, max_seif
+    max_idx = len(siman.sub_seifim) - 1
+    lo, hi = start_idx, max_idx
     best_spread = None
 
     while lo <= hi:
         mid = (lo + hi) // 2
-        feasible, spread = check_spread_feasibility(siman, seif_start, mid, geom, config)
+        feasible, spread = check_spread_feasibility(siman, start_idx, mid, geom, config)
         if feasible:
             best_spread = spread
             lo = mid + 1
@@ -239,7 +254,7 @@ def optimize_spread(
 
     if best_spread is None:
         # If even one seif doesn't fit, we force it and it will overfill
-        _, best_spread = check_spread_feasibility(siman, seif_start, seif_start, geom, config)
+        _, best_spread = check_spread_feasibility(siman, start_idx, start_idx, geom, config)
 
     return best_spread
 
@@ -250,11 +265,11 @@ def optimize_siman(
     measure_config: MeasureConfig | None = None,
 ) -> PagePlan:
     plan = PagePlan(siman=siman.siman)
-    current_seif = 1
+    current_idx = 0
     page_num = 1
 
-    while current_seif <= siman.num_seifim:
-        spread = optimize_spread(siman, current_seif, geom, measure_config)
+    while current_idx < len(siman.sub_seifim):
+        spread = optimize_spread(siman, current_idx, geom, measure_config)
         
         # Add Core page
         spread.core_page.page_num = page_num
@@ -268,7 +283,7 @@ def optimize_siman(
         print(f"    Core height: {spread.core_page.band_heights.total_center_height:.0f}pt")
         print(f"    Comm height: {spread.comm_page.band_heights.total_center_height:.0f}pt")
 
-        current_seif = spread.seif_end + 1
+        current_idx = spread.next_index
         page_num += 2
 
     return plan

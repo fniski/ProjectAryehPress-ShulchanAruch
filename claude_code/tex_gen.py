@@ -46,10 +46,11 @@ def _preamble(geom: PageGeometry) -> str:
 \usepackage{{fontspec}}
 \usepackage{{polyglossia}}
 \setdefaultlanguage{{hebrew}}
+\setotherlanguage{{english}}
 
 \pagenumbering{{gobble}}
 \setlength{{\parindent}}{{0pt}}
-\setlength{{\parskip}}{{2pt}}
+\setlength{{\parskip}}{{1.4pt}}
 \tolerance=9999
 \emergencystretch=3em
 \hyphenpenalty=10000
@@ -153,6 +154,7 @@ def _render_page(page: PageContent, geom: PageGeometry, siman_num: int) -> str:
     x_right_side = mx + tw - side_w
 
     b = page.band_heights
+    local_gap = max(5.0, b.gap - 1.0)
     is_core = (page.page_num % 2 != 0)
     tex = ""
 
@@ -162,18 +164,18 @@ def _render_page(page: PageContent, geom: PageGeometry, siman_num: int) -> str:
         tex += (f"\\begin{{textblock*}}{{{tw}pt}}({mx}pt, {current_y}pt)\n"
                 f"  \\begin{{center}}\\Large\\textbf{{אורח חיים סימן "
                 f"{_to_hebrew_gematria(siman_num)}"
-                f" — סעיפים {_to_hebrew_gematria(page.seif_start)}"
-                f"–{_to_hebrew_gematria(page.seif_end)}"
+                f" — סעיפים {page.seif_start}"
+                f"–{page.seif_end}"
                 f"}}\\end{{center}}\n"
-                f"  \\rule{{\\linewidth}}{{0.5pt}}\n"
+                f"  \\rule{{\\linewidth}}{{0.35pt}}\n"
                 f"\\end{{textblock*}}\n\n")
-        current_y += b.title + b.gap
+        current_y += b.title + local_gap
     else:
         # On commentary page, maybe a smaller header or just start lower
         tex += (f"\\begin{{textblock*}}{{{tw}pt}}({mx}pt, {current_y}pt)\n"
                 f"  \\begin{{center}}\\small (המשך סימן {_to_hebrew_gematria(siman_num)})\\end{{center}}\n"
                 f"\\end{{textblock*}}\n\n")
-        current_y += 20 + b.gap
+        current_y += 18 + local_gap
 
     # ── Main text (Core only) ──
     main_txt = _escape_tex(page.zone_texts.get("main_text", ""))
@@ -181,9 +183,9 @@ def _render_page(page: PageContent, geom: PageGeometry, siman_num: int) -> str:
         tex += (f"\\placezone{{{x_center:.1f}}}{{{current_y:.1f}}}"
                 f"{{{center_w:.1f}}}{{{FONT_MAIN.size}}}{{{FONT_MAIN.leading}}}"
                 f"{{{main_txt}}}\n\n")
-        current_y += b.main_text + b.gap
+        current_y += b.main_text + local_gap
         # Separator after main text
-        tex += f"\\sepline{{{x_center:.1f}}}{{{current_y - b.gap/2:.1f}}}{{{center_w:.1f}}}\n"
+        tex += f"\\sepline{{{x_center:.1f}}}{{{current_y - local_gap/2:.1f}}}{{{center_w:.1f}}}\n"
 
     # ── Taz | Magen Avraham (Core only) ──
     if "taz" in page.zone_texts or "magen_avraham" in page.zone_texts:
@@ -197,7 +199,7 @@ def _render_page(page: PageContent, geom: PageGeometry, siman_num: int) -> str:
                         f"{{{w:.1f}}}{{{FONT_COMMENTARY_LARGE.size}}}"
                         f"{{{FONT_COMMENTARY_LARGE.leading}}}"
                         f"{{{header}}}{{{txt}}}\n\n")
-        current_y += b.taz_ma + b.gap
+        current_y += b.taz_ma + local_gap
 
     # ── Machatzit HaShekel (Commentary page) ──
     if "machatzit_hashekel_left" in page.zone_texts or "machatzit_hashekel_right" in page.zone_texts:
@@ -211,8 +213,8 @@ def _render_page(page: PageContent, geom: PageGeometry, siman_num: int) -> str:
                         f"{{{w:.1f}}}{{{FONT_COMMENTARY_SMALL.size}}}"
                         f"{{{FONT_COMMENTARY_SMALL.leading}}}"
                         f"{{{header}}}{{{txt}}}\n\n")
-        current_y += b.machatzit + b.gap
-        tex += f"\\sepline{{{x_center:.1f}}}{{{current_y - b.gap/2:.1f}}}{{{center_w:.1f}}}\n"
+        current_y += b.machatzit + local_gap
+        tex += f"\\sepline{{{x_center:.1f}}}{{{current_y - local_gap/2:.1f}}}{{{center_w:.1f}}}\n"
 
     # ── Pri Megadim (Commentary page) ──
     if "mishbetzot_zahav" in page.zone_texts or "eshel_avraham" in page.zone_texts:
@@ -226,7 +228,7 @@ def _render_page(page: PageContent, geom: PageGeometry, siman_num: int) -> str:
                         f"{{{w:.1f}}}{{{FONT_COMMENTARY_SMALL.size}}}"
                         f"{{{FONT_COMMENTARY_SMALL.leading}}}"
                         f"{{{header}}}{{{txt}}}\n\n")
-        current_y += b.pri_megadim + b.gap
+        current_y += b.pri_megadim + local_gap
 
     # ── Side columns (Commentary page) ──
     if not is_core:
@@ -254,8 +256,6 @@ def _render_page(page: PageContent, geom: PageGeometry, siman_num: int) -> str:
                         f"{{{header}}}{{{txt}}}\n\n")
                 h = FONT_SIDE.estimate_height_pt(page.zone_texts.get(name, ""), side_w)
                 y_side += h + gap + 25
-
-    return tex
 
     return tex
 

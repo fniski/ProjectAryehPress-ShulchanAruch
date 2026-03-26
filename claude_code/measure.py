@@ -75,6 +75,7 @@ def _build_measurement_tex(
 \usepackage{fontspec}
 \usepackage{polyglossia}
 \setdefaultlanguage{hebrew}
+\setotherlanguage{english}
 \pagenumbering{gobble}
 \newfontfamily\measurefont[
   Path=D:/Projects/ProjectAryehPress/Seforim/Fonts/,
